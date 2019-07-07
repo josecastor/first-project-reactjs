@@ -4,7 +4,7 @@ import { FaGithubAlt, FaPlus, FaSpinner } from 'react-icons/fa';
 
 import api from '../../services/api';
 
-import { Container, Form, SubmitButton } from './styles';
+import { Container, Form, SubmitButton, List } from './styles';
 
 export default class Main extends Component {
   state = {
@@ -12,6 +12,21 @@ export default class Main extends Component {
     repositories: [],
     loading: false,
   };
+
+  // carrega repositorios do localstorage
+  componentDidMount() {
+    const repositories = localStorage.getItem('repositories');
+    if (repositories) {
+      this.setState({ repositories: JSON.parse(repositories) });
+    }
+  }
+
+  componentDidUpdate(_, prevState) {
+    const { repositories } = this.state;
+    if (prevState.repositories !== repositories) {
+      localStorage.setItem('repositories', JSON.stringify(repositories));
+    }
+  }
 
   handlerInputChange = e => {
     this.setState({ newRep: e.target.value });
@@ -27,7 +42,7 @@ export default class Main extends Component {
     const response = await api.get(`/repos/${newRep}`);
 
     const data = {
-      nome: response.data.full_name,
+      name: response.data.full_name,
     };
 
     this.setState({
@@ -38,7 +53,7 @@ export default class Main extends Component {
   };
 
   render() {
-    const { newRep, loading } = this.state;
+    const { newRep, repositories, loading } = this.state;
     return (
       <Container>
         <h1>
@@ -62,6 +77,15 @@ export default class Main extends Component {
             )}
           </SubmitButton>
         </Form>
+
+        <List>
+          {repositories.map(repository => (
+            <li key={repository.name}>
+              <span>{repository.name}</span>
+              <a href="">Detalhes</a>
+            </li>
+          ))}
+        </List>
       </Container>
     );
   }
